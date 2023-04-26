@@ -17,7 +17,7 @@ export const restaurantSeedData = [
       {
         name: 'Burger',
         description:
-          'A burger is a sandwich consisting of one or more cooked patties of ground meat, usually beef, placed inside a sliced bread roll or bun.',
+          'A burger is a sandwich consisting of one or more cooked patties of ground meat, usually beef, placed inside a sliced bread roll or bun. It is yummy.',
         image:
           'https://images.unsplash.com/photo-1572448862527-d3c904757de6?auto=format&fit=crop&w=800&q=80',
         price: Number(faker.finance.amount(5, 50, 2)),
