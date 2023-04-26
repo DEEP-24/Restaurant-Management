@@ -1,0 +1,115 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["extendedWhereUnique"]
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String  @id @default(auto()) @map("_id") @db.ObjectId
+  firstName    String  @map("first_name")
+  lastName     String  @map("last_name")
+  passwordHash String  @map("password_hash")
+  email        String  @unique
+  orders       Order[]
+  address      String?
+  role         Role    @default(CUSTOMER)
+
+  @@map("user")
+}
+
+model Restaurant {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  name        String  @unique
+  description String?
+  image       String
+  slug        String  @unique
+  items       Item[]
+
+  @@map("restaurant")
+}
+
+model Item {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String?
+  image       String
+  slug        String      @unique
+  price       Float
+  quantity    Int
+  orderIds    ItemOrder[]
+
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  restaurantId String     @map("restaurant_id")
+
+  @@map("item")
+}
+
+model Order {
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime    @default(now()) @map("created_at")
+  type      OrderType   @default(DELIVERY)
+  items     ItemOrder[]
+  invoice   Invoice?
+  status    OrderStatus
+  feedback  String?
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId String @map("user_id")
+
+  @@map("order")
+}
+
+model Invoice {
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt     DateTime      @default(now()) @map("created_at")
+  amount        Float
+  paymentMethod PaymentMethod @default(CREDIT_CARD) @map("payment_method")
+  totalAmount   Float         @map("total_amount")
+  address       String?
+
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  orderId String @unique
+
+  @@map("invoice")
+}
+
+model ItemOrder {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  quantity Int
+
+  item    Item   @relation(fields: [itemId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  itemId  String @map("item_id")
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  orderId String @map("order_id")
+
+  @@unique([itemId, orderId])
+  @@map("item_order")
+}
+
+enum OrderStatus {
+  PENDING
+  PREPARING
+  REJECTED
+  READY
+  DELIVERED
+  CANCELLED
+}
+
+enum OrderType {
+  DELIVERY
+  PICKUP
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  DEBIT_CARD
+}
+
+enum Role {
+  CUSTOMER
+  STAFF
+}
